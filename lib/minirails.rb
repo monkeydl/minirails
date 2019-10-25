@@ -1,18 +1,40 @@
-require "minirails/array"
 require "minirails/version"
+require "minirails/routing"
 
 module Minirails
-  class Error < StandardError; end
+  class Error < StandardError;
+  end
   # Your code goes here...
 
   class Application
-    def call(_env)
+    def call(env)
+      if env['PATH_INFO'] == '/favicon.ico'
+        return [
+          404,
+          { 'Content-Type' => 'text/html' },
+          []
+        ]
+      end
+
+      klass, act = get_controller_and_action(env)
+      controller = klass.new(env)
+      text = controller.send(act)
       `echo debug > log/debug.txt`;
       [
         200,
         { 'Content-Type' => 'text/html' },
-        ['Hello from Ruby on MiniRails!']
+        [text]
       ]
+    end
+  end
+
+  class Controller
+    def initialize(env)
+      @env = env
+    end
+
+    def env
+      @env
     end
   end
 end
